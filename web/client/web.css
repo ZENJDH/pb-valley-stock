@@ -1,0 +1,67 @@
+body { min-width: 0; font-size: 16px; }
+.web-logout { position: fixed; z-index: 10; bottom: 78px; left: 24px; border: 1px solid #679480; background: #164e37; color: white; border-radius: 8px; padding: 8px 14px; font: inherit; font-size: 14px; }
+.web-error { position: fixed; top: 8px; right: 8px; z-index: 100; background: #fff0f0; color: #941f24; padding: 12px; }
+.login-screen { min-height: 100dvh; display: grid; place-items: center; padding: 24px; background: #edf3ef; }
+.login-card { width: min(440px, 100%); background: white; padding: 32px; border: 1px solid #dce7df; border-radius: 20px; box-shadow: 0 18px 60px #164e3710; }
+.login-logo { background: #10452f; padding: 15px; border-radius: 14px; width: 110px; margin-bottom: 24px; }
+.login-logo img { width: 100%; display: block; }
+.login-brand { letter-spacing: .12em; color: #276445; font-weight: 600; }
+.login-card h1 { font-size: 26px; margin: 8px 0; }
+.login-card p { margin-bottom: 16px; font-size: 15px; }
+.login-card label { display: block; font-size: 14px; margin: 20px 0 8px; }
+.login-card input { width: 100%; padding: 12px; border: 1px solid #c8d8ce; border-radius: 8px; font: inherit; }
+.login-card button { margin-top: 20px; width: 100%; min-height: 46px; border: 0; border-radius: 8px; color: white; background: #18583b; font: inherit; }
+.login-card button:disabled { opacity: .6; }
+.login-error { color: #a52828; }
+.sidebar .nav-item { font-size: 15px; }
+.sidebar-note { margin-bottom: 60px; }
+.main-content { min-width: 0; }
+.filters { flex-wrap: wrap; }
+.search-box input { min-width: 0; font-size: 14px; }
+.filters select, .text-button, .group-add-button, .sub-add-button, .group-photo-button { font-size: 14px; }
+.product-row .status-badge, th, table { font-size: 14px; }
+.field input, .field select, .field textarea { font-size: 16px; }
+.field > span { font-size: 14px; }
+@media (max-width: 760px) {
+  .app-shell { display: block; min-width: 0; }
+  .sidebar { position: relative; inset: auto; width: 100%; height: auto; padding: 16px; overflow: visible; }
+  .sidebar .brand { margin-bottom: 16px; }
+  .sidebar nav { display: flex; overflow-x: auto; gap: 8px; padding-bottom: 8px; }
+  .sidebar .nav-item { flex: 0 0 auto; margin: 0; padding: 11px 13px; min-height: 44px; }
+  .sidebar .nav-label, .sidebar-spacer, .sidebar-note, .sidebar::after { display: none; }
+  .sidebar > .nav-item { display: inline-flex; width: auto; margin-top: 8px; }
+  .web-logout { position: absolute; top: 30px; bottom: auto; right: 16px; left: auto; font-size: 13px; }
+  .main-content { margin-left: 0; padding: 16px !important; width: 100%; }
+  .workspace-topbar { min-height: 0; margin-bottom: 12px; }
+  .workspace-actions { flex-wrap: wrap; }
+  .welcome-card { padding: 18px; display: block; }
+  .welcome-copy h1 { font-size: 23px; }
+  .welcome-copy p { font-size: 13px; }
+  .welcome-sprout, .date-card, .welcome-quote { display: none; }
+  .stats-grid { gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat-card { padding: 14px; min-height: 100px; gap: 9px; }
+  .stat-icon { width: 30px; height: 30px; flex: none; }
+  .stat-card strong { font-size: 26px; }.stat-card span, .stat-card small { font-size: 12px; }
+  .stat-watermark { display: none; }
+  .insights-grid { grid-template-columns: minmax(0, 1fr); }
+  .category-overview { grid-column: auto; }
+  .category-summary-list { grid-template-columns: minmax(0, 1fr); }
+  .insight-card { min-width: 0; padding: 16px; }
+  .insight-heading { flex-wrap: wrap; gap: 8px; }
+  .inventory-heading { align-items: flex-start; flex-direction: column; gap: 14px; padding: 18px; }
+  .inventory-heading h2 { font-size: 21px; }
+  .urgency-legend { justify-content: flex-start; font-size: 12px; }
+  .filters { justify-content: flex-start; padding: 0 18px 16px; }
+  .search-box { flex-basis: 100%; min-width: 0; }
+  .filters select { min-width: 0; flex: 1; max-width: 100%; }
+  .inventory-add-category { width: 100%; }
+  .table-wrap { -webkit-overflow-scrolling: touch; }
+  table { min-width: 950px; }
+  .product-row td { padding: 14px 12px; }
+  .modal-backdrop { padding: 12px; }
+  .modal { padding: 18px; max-height: calc(100dvh - 24px); }
+  .form-grid { grid-template-columns: 1fr !important; }
+  .field { grid-column: 1 / -1; }
+  .modal-actions { flex-wrap: wrap; }
+  .toast { right: 12px; left: 12px; bottom: 12px; max-width: none; font-size: 14px; }
+}
