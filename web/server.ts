@@ -34,7 +34,7 @@ const failures = new Map<string, { count: number; until: number }>()
 const allowedHosts = new Set(['localhost', '127.0.0.1', '[::1]', 'www.pbvalleystock.com', 'pbvalleystock.com', ...Object.values(networkInterfaces()).flat().filter(Boolean).map((entry) => entry!.address), ...(process.env.PB_ALLOWED_HOSTS || '').split(',').filter(Boolean)])
 function isAllowedHost(hostname: string): boolean {
   if (allowedHosts.has(hostname)) return true
-  if (hostname.endsWith('.trycloudflare.com') || hostname.endsWith('.ngrok-free.app') || hostname.endsWith('.ngrok.app') || hostname.endsWith('.ngrok.io') || hostname.endsWith('.loca.lt')) return true
+  if (hostname.endsWith('.trycloudflare.com') || hostname.endsWith('.ngrok-free.app') || hostname.endsWith('.ngrok-free.dev') || hostname.endsWith('.ngrok.app') || hostname.endsWith('.ngrok.dev') || hostname.endsWith('.ngrok.io') || hostname.endsWith('.loca.lt')) return true
   if (process.env.PB_ALLOW_ANY_HOST === '1') return true
   return false
 }

@@ -1,4 +1,4 @@
-﻿param([switch]$NoBrowser)
+param([switch]$NoBrowser)
 $ErrorActionPreference = 'Stop'
 
 $projectDir = Split-Path -Parent $PSScriptRoot
@@ -67,13 +67,14 @@ if (-not (Test-Path $ngrokPath)) {
   throw 'Cannot find ngrok.exe in scripts folder.'
 }
 
+$staticDomain = 'unsarcastical-elwanda-corky.ngrok-free.dev'
 $onlineUrl = Get-NgrokUrl
 
 if (-not $onlineUrl) {
-  Write-Host "[2/2] Connecting to ngrok online tunnel..." -ForegroundColor Cyan
+  Write-Host "[2/2] Connecting to static ngrok tunnel ($staticDomain)..." -ForegroundColor Cyan
   $ngrokLog = Join-Path $projectDir 'web-logs\ngrok.log'
   
-  $tunnelProc = Start-Process -FilePath $ngrokPath -ArgumentList 'http', '127.0.0.1:80', '--log=stdout' -WorkingDirectory $projectDir -WindowStyle Hidden -RedirectStandardOutput $ngrokLog -PassThru
+  $tunnelProc = Start-Process -FilePath $ngrokPath -ArgumentList 'http', '127.0.0.1:80', "--domain=$staticDomain", '--log=stdout' -WorkingDirectory $projectDir -WindowStyle Hidden -RedirectStandardOutput $ngrokLog -PassThru
   
   for ($i = 0; $i -lt 30; $i++) {
     $onlineUrl = Get-NgrokUrl
