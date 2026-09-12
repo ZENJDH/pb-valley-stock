@@ -1,7 +1,7 @@
 import ExcelJS from 'exceljs'
 import { parse as parseCsv } from 'csv-parse/sync'
 import { extname } from 'node:path'
-import type { ProductInput } from '../src/shared/types'
+import type { InventoryMode, ProductInput } from '../src/shared/types'
 import type { StockDatabase } from '../src/main/database'
 
 const HEADERS = {
@@ -11,7 +11,7 @@ const HEADERS = {
   totalQuantity: ['totalquantity', 'totalqty', 'จำนวนทั้งหมด', 'จำนวนรับเข้า'],
   quantity: ['quantity', 'qty', 'จำนวน', 'คงเหลือ', 'จำนวนคงเหลือ', 'remaining', 'remainingquantity'],
   manufactureDate: ['manufacturedate', 'manufacturingdate', 'mfgdate', 'วันที่ผลิต'],
-  expirationDate: ['expirationdate', 'expirydate', 'expdate', 'วันหมดอายุ'],
+  expirationDate: ['expirationdate', 'expirydate', 'expdate', 'วันหมดอายุ', 'orderdate', 'ordereddate', 'วันที่สั่งเข้า', 'วันที่สั่งเข้ามา'],
   barcode: ['barcode', 'บาร์โค้ด', 'รหัสสินค้า', 'รหัสสินค้า/บาร์โค้ด', 'productcode', 'sku'],
   notes: ['notes', 'note', 'หมายเหตุ']
 } as const
@@ -52,7 +52,7 @@ function toIsoDate(value: unknown): string | null {
   return text
 }
 
-function rowToInput(row: Record<string, unknown>): ProductInput {
+function rowToInput(row: Record<string, unknown>, inventoryMode: InventoryMode): ProductInput {
   const remainingValue = findValue(row, HEADERS.quantity)
   const totalValue = findValue(row, HEADERS.totalQuantity)
   const quantity = Number(remainingValue === undefined || remainingValue === '' ? totalValue ?? 0 : remainingValue)
@@ -63,7 +63,7 @@ function rowToInput(row: Record<string, unknown>): ProductInput {
     subcategory: String(findValue(row, HEADERS.subcategory) ?? '').trim(),
     totalQuantity,
     quantity,
-    manufactureDate: toIsoDate(findValue(row, HEADERS.manufactureDate)),
+    manufactureDate: inventoryMode === 'agrochemicals' ? null : toIsoDate(findValue(row, HEADERS.manufactureDate)),
     expirationDate: toIsoDate(findValue(row, HEADERS.expirationDate)) ?? '',
     barcode: String(findValue(row, HEADERS.barcode) ?? '').trim() || null,
     notes: String(findValue(row, HEADERS.notes) ?? '').trim() || null,
@@ -100,11 +100,11 @@ async function readRows(filePath: string, content: Buffer): Promise<Record<strin
   return rows
 }
 
-export async function importBuffer(db: StockDatabase, name: string, content: Buffer) {
+export async function importBuffer(db: StockDatabase, name: string, content: Buffer, inventoryMode: InventoryMode = 'products') {
   if (!['.csv', '.xlsx'].includes(extname(name).toLowerCase())) throw new Error('รองรับ CSV และ XLSX เท่านั้น')
   const rows = await readRows(name, content)
   if (rows.length > 10000) throw new Error('นำเข้าได้ไม่เกิน 10000 รายการต่อครั้ง')
-  return db.importProducts(rows.map(rowToInput))
+  return db.importProducts(rows.map((row) => rowToInput(row, inventoryMode)), inventoryMode)
 }
 
 function csvCell(value: unknown): string {
@@ -113,8 +113,19 @@ function csvCell(value: unknown): string {
   return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text
 }
 
-export async function exportBuffer(db: StockDatabase, format: 'xlsx' | 'csv') {
-  const columns = [
+export async function exportBuffer(db: StockDatabase, format: 'xlsx' | 'csv', inventoryMode: InventoryMode = 'products') {
+  const columns = inventoryMode === 'agrochemicals' ? [
+    { header: 'ID', key: 'id', width: 8 },
+    { header: 'ชื่อปุ๋ย / สารเคมี', key: 'name', width: 28 },
+    { header: 'ฝ่าย', key: 'category', width: 18 },
+    { header: 'ประเภทวัสดุ', key: 'subcategory', width: 18 },
+    { header: 'จำนวนทั้งหมด', key: 'totalQuantity', width: 15 },
+    { header: 'จำนวนคงเหลือ', key: 'quantity', width: 15 },
+    { header: 'วันที่สั่งเข้ามา', key: 'expirationDate', width: 18 },
+    { header: 'รหัสรายการ / เลขที่สั่งซื้อ', key: 'barcode', width: 26 },
+    { header: 'หมายเหตุ', key: 'notes', width: 32 },
+    { header: 'สถานะสต็อก', key: 'status', width: 16 }
+  ] : [
     { header: 'ID', key: 'id', width: 8 },
     { header: 'ชื่อสินค้า', key: 'name', width: 28 },
     { header: 'หมวดหมู่', key: 'category', width: 18 },
@@ -128,12 +139,14 @@ export async function exportBuffer(db: StockDatabase, format: 'xlsx' | 'csv') {
     { header: 'สถานะ', key: 'status', width: 16 },
     { header: 'จำนวนวันที่เหลือ', key: 'daysRemaining', width: 18 }
   ]
-  const rows = db.listProducts().map((product) => ({
+  const rows = db.listProducts({ inventoryMode }).map((product) => ({
     ...product,
     manufactureDate: product.manufactureDate ?? '',
     barcode: product.barcode ?? '',
     notes: product.notes ?? '',
-    status: product.status === 'expired' ? 'หมดอายุแล้ว' : product.status === 'expiring' ? 'ใกล้หมดอายุ' : 'ปกติ'
+    status: inventoryMode === 'agrochemicals'
+      ? (product.quantity === 0 ? 'หมดสต็อก' : product.totalQuantity > 0 && product.quantity / product.totalQuantity <= 0.25 ? 'ควรสั่งเพิ่ม' : 'พร้อมใช้งาน')
+      : product.status === 'expired' ? 'หมดอายุแล้ว' : product.status === 'expiring' ? 'ใกล้หมดอายุ' : 'ปกติ'
   }))
 
   if (format === 'csv') {
@@ -149,7 +162,8 @@ export async function exportBuffer(db: StockDatabase, format: 'xlsx' | 'csv') {
     sheet.addRows(rows)
     sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
     sheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF275D45' } }
-    sheet.autoFilter = { from: 'A1', to: `L${Math.max(1, rows.length + 1)}` }
+    const lastColumn = inventoryMode === 'agrochemicals' ? 'J' : 'L'
+    sheet.autoFilter = { from: 'A1', to: `${lastColumn}${Math.max(1, rows.length + 1)}` }
     return Buffer.from(await workbook.xlsx.writeBuffer())
   }
 }

@@ -23,6 +23,11 @@ const api: StockApi = {
     testExpiring: () => ipcRenderer.invoke('notifications:testExpiring'),
     runNow: () => ipcRenderer.invoke('notifications:runNow')
   },
+  activities: {
+    list: (limit) => ipcRenderer.invoke('activities:list', limit),
+    markAsRead: () => ipcRenderer.invoke('activities:markAsRead'),
+    clear: () => ipcRenderer.invoke('activities:clear')
+  },
   files: {
     import: () => ipcRenderer.invoke('files:import'),
     export: (format) => ipcRenderer.invoke('files:export', format),
@@ -34,7 +39,8 @@ const api: StockApi = {
     setMainImage: (id, imageData) => ipcRenderer.invoke('categories:setMainImage', id, imageData),
     renameMain: (id, name) => ipcRenderer.invoke('categories:renameMain', id, name),
     removeMain: (id) => ipcRenderer.invoke('categories:removeMain', id),
-    createSubcategory: (categoryId, name) => ipcRenderer.invoke('categories:createSubcategory', categoryId, name),
+    createSubcategory: (categoryId, name, imageData) => ipcRenderer.invoke('categories:createSubcategory', categoryId, name, imageData),
+    setSubcategoryImage: (id, imageData) => ipcRenderer.invoke('categories:setSubcategoryImage', id, imageData),
     renameSubcategory: (id, name) => ipcRenderer.invoke('categories:renameSubcategory', id, name),
     removeSubcategory: (id) => ipcRenderer.invoke('categories:removeSubcategory', id)
   }

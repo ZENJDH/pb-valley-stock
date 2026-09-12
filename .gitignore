@@ -13,3 +13,6 @@ Thumbs.db
 *.sqlite-wal
 .env
 .env.*
+scripts/cloudflared.exe
+scripts/ngrok.exe
+.style/

@@ -25,7 +25,7 @@ export function buildAlertMessages(products: Product[], warningDays: number): st
     }
   }
   if (current.trim()) messages.push(current)
-  return messages.slice(0, 5)
+  return messages
 }
 
 async function responseError(response: Response): Promise<string> {
@@ -75,24 +75,27 @@ export async function sendLine(channelAccessToken: string, targetId: string, mes
     if (!verification.ok) throw new Error(`ตรวจสอบปลายทาง LINE ไม่สำเร็จ: ${await responseError(verification)}`)
   }
 
-  const response = await fetch('https://api.line.me/v2/bot/message/push', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${channelAccessToken}`
-    },
-    body: JSON.stringify({
-      to: targetId,
-      messages: messages.map((text) => ({ type: 'text', text }))
+  for (let i = 0; i < messages.length; i += 5) {
+    const batch = messages.slice(i, i + 5)
+    const response = await fetch('https://api.line.me/v2/bot/message/push', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${channelAccessToken}`
+      },
+      body: JSON.stringify({
+        to: targetId,
+        messages: batch.map((text) => ({ type: 'text', text }))
+      })
     })
-  })
-  if (!response.ok) {
-    const detail = await responseError(response)
-    if (response.status === 401 || response.status === 403) throw new Error('Channel Access Token ไม่ถูกต้อง หมดอายุ หรือถูก Reissue แล้ว')
-    if (detail.includes('Failed to send messages')) {
-      throw new Error('LINE ส่งข้อความไม่ได้ กรุณาตรวจว่า ID และ Token มาจาก Provider เดียวกัน และผู้รับยังเป็นเพื่อนกับ Official Account')
+    if (!response.ok) {
+      const detail = await responseError(response)
+      if (response.status === 401 || response.status === 403) throw new Error('Channel Access Token ไม่ถูกต้อง หมดอายุ หรือถูก Reissue แล้ว')
+      if (detail.includes('Failed to send messages')) {
+        throw new Error('LINE ส่งข้อความไม่ได้ กรุณาตรวจว่า ID และ Token มาจาก Provider เดียวกัน และผู้รับยังเป็นเพื่อนกับ Official Account')
+      }
+      throw new Error(detail)
     }
-    throw new Error(detail)
   }
 }
 

@@ -25,7 +25,8 @@ const api: Record<string, unknown> = {}
 const methods = {
   products: ['list', 'create', 'update', 'adjustQuantity', 'remove', 'categories', 'categoryOptions'],
   dashboard: ['summary'], settings: ['get', 'save'], notifications: ['test', 'testExpiring', 'runNow'],
-  categoryManager: ['list', 'createMain', 'setMainImage', 'renameMain', 'removeMain', 'createSubcategory', 'renameSubcategory', 'removeSubcategory']
+  activities: ['list', 'markAsRead', 'clear'],
+  categoryManager: ['list', 'createMain', 'setMainImage', 'renameMain', 'removeMain', 'createSubcategory', 'setSubcategoryImage', 'renameSubcategory', 'removeSubcategory']
 }
 for (const [group, names] of Object.entries(methods)) api[group] = Object.fromEntries(names.map((name) => [name, (...args: unknown[]) => rpc(`${group}.${name}`, args)]))
 api.files = {

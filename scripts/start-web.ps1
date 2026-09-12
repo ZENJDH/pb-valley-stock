@@ -2,6 +2,25 @@ param([switch]$NoBrowser)
 $ErrorActionPreference = 'Stop'
 $projectDir = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $projectDir
+
+function Ensure-WebBuild {
+  $serverBuild = Join-Path $projectDir 'web-dist\server.cjs'
+  $publicBuild = Join-Path $projectDir 'web-dist\public\index.html'
+  $needsBuild = -not (Test-Path -LiteralPath $serverBuild) -or -not (Test-Path -LiteralPath $publicBuild)
+  if (-not $needsBuild) {
+    $latestSource = Get-ChildItem -LiteralPath (Join-Path $projectDir 'web'), (Join-Path $projectDir 'src') -Recurse -File | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
+    $oldestBuild = @((Get-Item -LiteralPath $serverBuild).LastWriteTimeUtc, (Get-Item -LiteralPath $publicBuild).LastWriteTimeUtc) | Sort-Object | Select-Object -First 1
+    $needsBuild = $latestSource -and $latestSource.LastWriteTimeUtc -gt $oldestBuild
+  }
+  if ($needsBuild) {
+    Write-Host 'Updating web build...' -ForegroundColor Cyan
+    $npm = (Get-Command npm.cmd -ErrorAction Stop).Source
+    & $npm run build:web
+    if ($LASTEXITCODE -ne 0) { throw 'Web build failed.' }
+  }
+}
+Ensure-WebBuild
+
 function Test-PbServer {
   try { $health = & curl.exe --noproxy '*' --max-time 2 --silent http://127.0.0.1/api/health; return ($LASTEXITCODE -eq 0 -and ($health | ConvertFrom-Json).app -eq 'pb-valley-stock') } catch { return $false }
 }

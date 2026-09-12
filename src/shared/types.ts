@@ -1,4 +1,6 @@
 export type ExpirationStatus = 'expired' | 'expiring' | 'safe'
+export type UserRole = 'admin' | 'counter' | 'viewer'
+export type InventoryMode = 'products' | 'agrochemicals'
 
 export interface ProductInput {
   name: string
@@ -26,6 +28,7 @@ export interface ProductFilters {
   category?: string
   subcategory?: string
   status?: ExpirationStatus | 'all'
+  inventoryMode?: InventoryMode
 }
 
 export interface DashboardSummary {
@@ -45,6 +48,7 @@ export interface CategoryOption {
 export interface SubcategorySummary {
   id: number
   name: string
+  imageData?: string | null
   productCount: number
   remainingUnits: number
 }
@@ -101,6 +105,21 @@ export interface ExportResult {
   canceled?: boolean
 }
 
+export type StockActivityType = 'increase' | 'decrease' | 'create' | 'delete' | 'inbound' | 'outbound'
+
+export interface StockActivity {
+  id: number
+  productId?: number | null
+  productName: string
+  actionType: StockActivityType
+  delta: number
+  previousQuantity: number
+  newQuantity: number
+  unit: string
+  isRead: boolean
+  createdAt: string
+}
+
 export interface StockApi {
   products: {
     list(filters?: ProductFilters): Promise<Product[]>
@@ -123,6 +142,11 @@ export interface StockApi {
     testExpiring(): Promise<NotificationTestResult>
     runNow(): Promise<NotificationTestResult>
   }
+  activities: {
+    list(limit?: number): Promise<StockActivity[]>
+    markAsRead(): Promise<void>
+    clear(): Promise<void>
+  }
   files: {
     import(): Promise<ImportResult>
     export(format: 'xlsx' | 'csv'): Promise<ExportResult>
@@ -134,7 +158,8 @@ export interface StockApi {
     setMainImage(id: number, imageData: string | null): Promise<void>
     renameMain(id: number, name: string): Promise<void>
     removeMain(id: number): Promise<void>
-    createSubcategory(categoryId: number, name: string): Promise<void>
+    createSubcategory(categoryId: number, name: string, imageData?: string | null): Promise<void>
+    setSubcategoryImage(id: number, imageData: string | null): Promise<void>
     renameSubcategory(id: number, name: string): Promise<void>
     removeSubcategory(id: number): Promise<void>
   }
