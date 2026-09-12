@@ -24,9 +24,23 @@ $scWeb.WorkingDirectory = $projectDir
 if (Test-Path -LiteralPath $icoPath) {
     $scWeb.IconLocation = "$icoPath,0"
 }
-$scWeb.Description = 'PB Valley Stock - Web'
+$scWeb.Description = 'PB Valley Stock - Web (Local)'
 $scWeb.Save()
 Write-Output "Created: PB Valley Stock (Web).lnk"
+
+# 1.1 Shortcut: Online Web (Silent 1-Click Online Launcher)
+$onlineLink = Join-Path $shortDesktop 'PB Valley Stock (Online).lnk'
+$vbsOnlinePath = Join-Path $projectDir 'เปิดเว็บออนไลน์ PB Valley.vbs'
+$scOnline = $wsh.CreateShortcut($onlineLink)
+$scOnline.TargetPath = 'wscript.exe'
+$scOnline.Arguments = "`"$vbsOnlinePath`""
+$scOnline.WorkingDirectory = $projectDir
+if (Test-Path -LiteralPath $icoPath) {
+    $scOnline.IconLocation = "$icoPath,0"
+}
+$scOnline.Description = 'PB Valley Stock - Online Web (Static 4G-5G URL)'
+$scOnline.Save()
+Write-Output "Created: PB Valley Stock (Online).lnk"
 
 # 2. Shortcut: Standalone Desktop Program (.exe)
 $exePath = Join-Path $projectDir 'release\Stock Expiration Tracker 1.8.3.exe'
